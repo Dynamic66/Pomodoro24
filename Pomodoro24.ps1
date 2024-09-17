@@ -1,4 +1,4 @@
-﻿<#
+<#
     .SYNOPSIS
         A simple Pomodoro Timer script that helps users stay focused and on track.
         The Pomodoro Technique is based on the idea of breaking down study sessions into short, focused intervals (typically 25 minutes) called "Pomodoros," separated by short breaks.
@@ -49,7 +49,7 @@ function Show-Timer {
     $alarm = New-Object System.Media.SoundPlayer($AlarmFilePath)
 
     $fUI = New-Object system.windows.forms.form
-    $lDisplay = New-Object System.Windows.Forms.Label #scriptcope because its used in a function and i cant be bother with importing it every time its called
+    $lDisplay = New-Object System.Windows.Forms.Label
     $lPomodoros = New-Object System.Windows.Forms.Label
 
 
@@ -69,10 +69,7 @@ function Show-Timer {
 
 
     function Update-DisplayString {
-        # $lDisplay.SuspendLayout() #suspending and resuming the layout prevents the text from fickering 
         $lDisplay.Text = "$script:state`n$('{0:mm\:ss}' -f (New-TimeSpan -Seconds $script:counter))" #formats seconds to a 00:00 format
-        #$lDisplay.Refresh() #causes flicker befor unfreezing the layout
-        #$lDisplay.ResumeLayout()
     }
     #endregion
 
@@ -151,7 +148,7 @@ function Show-Timer {
                     $script:isMoving = $true   
                     $fUI.Cursor = [System.Windows.Forms.Cursors]::SizeAll
                     $currentPos = [System.Windows.Forms.Cursor]::Position
-                    #grabs the form at the point when there mouse was clicked and moves it at this point #-10 because the controlbox is in flat format 
+                    #grabs the form at the point when there mouse was clicked and moves it at this point #-5 because the controlbox offset
                     $fUI.Location = [System.Drawing.Point]::new([int]$currentPos.x - $script:initialPosition.x - 5, [int]$currentPos.y - $script:initialPosition.y - 5)  
                     # $fUI.Location = [System.Drawing.Point]::new([int]$currentPos.x - $script:initialPosition.x, [int]$currentPos.y - $script:initialPosition.y)  
 
@@ -252,10 +249,11 @@ function Show-Timer {
     #region start app
     [void]$fUI.ShowDialog()
 
-    #cleanup
-    $tUIUpdater.Stop() # mb not needed? had problems witht htis in onther projects
+    #region cleanup
+    # maybe not needed? had problems witht this in onther projects
+    $tUIUpdater.Stop() 
     $tUIUpdater.Dispose()
-    $tdelay.Stop() # mb not needed? had problems witht htis in onther projects
+    $tdelay.Stop()
     $tdelay.Dispose()
     #endregion
 }
