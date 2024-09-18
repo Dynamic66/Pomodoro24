@@ -218,9 +218,11 @@ function Show-Timer {
             else {
                 $script:state = '↩'
                 $tUIUpdater.Enabled = $false
-                $fUI.TopMost = $true
-                $fUI.TopMost = $false
-                & { $alarm.Play() }
+                 if(-not $fUI.TopMost){
+                    $fUI.TopMost = $true
+                    $fUI.TopMost = $false
+                }
+                & { $alarm.Play() } # is there a better way it play a sound asynchronous?
             }
             Update-DisplayString
         })
