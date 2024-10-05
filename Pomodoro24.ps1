@@ -51,7 +51,9 @@ function Show-Timer {
     $fUI = New-Object system.windows.forms.form
     $lDisplay = New-Object System.Windows.Forms.Label
     $lPomodoros = New-Object System.Windows.Forms.Label
-
+    $lState = New-Object System.Windows.Forms.Label
+    $pProgress = New-Object System.Windows.Forms.ProgressBar
+    $pSec = New-Object System.Windows.Forms.ProgressBar
 
     $tUIUpdater = New-Object System.Windows.forms.timer 
     $tdelay = New-Object System.Windows.Forms.Timer
@@ -63,13 +65,35 @@ function Show-Timer {
     $bReset = New-Object System.Windows.Forms.ToolStripButton
     $bNewTimer = New-Object System.Windows.Forms.ToolStripButton
     $bTopmost = New-Object System.Windows.Forms.ToolStripButton
+    $bTimePicker = New-Object System.Windows.Forms.ToolStripButton
 
     $script:state = '▶'
     $alarm.LoadAsync()
 
 
     function Update-DisplayString {
-        $lDisplay.Text = "$script:state`n$('{0:mm\:ss}' -f (New-TimeSpan -Seconds $script:counter))" #formats seconds to a 00:00 format
+
+        #[string]$time = '{0:mm\:ss}' -f (New-TimeSpan -Seconds $counter)  #formats seconds to a 00:00 format
+        #changed it back to total seconds. seams to reduce flickering
+        $newtimeSpan = New-TimeSpan -Seconds $counter
+        [string]$time = $newtimeSpan.TotalSeconds
+
+        #(Measure-Command {
+        $lDisplay.Text = [string]$time
+        #}).ticks | oh
+
+        $lState.text = $state
+
+        $psec.Value = 100/60 * $newtimeSpan.Seconds
+        if($pSec.Value -eq 0){
+            $psec.Value = 100
+        }
+        
+        $pProgress.Value = (100 / (60 * $tMin.Text)) * $Counter 
+        if($pProgress.Value -eq 0){
+            $pProgress.Value = 100
+        }
+    
     }
     #endregion
 
@@ -77,14 +101,14 @@ function Show-Timer {
     $bTopmost.add_click({
             if ($fui.topmost) {
                 $fui.topmost = $false
-                $bTopmost.text = '📌  Topmost: disbaled'
+                $bTopmost.text = '📌  Topmost: Off'
             }
             else {
                 $fui.topmost = $true
-                $bTopmost.text = '📌  Topmost: enabled'
+                $bTopmost.text = '📌  Topmost: On'
             }
         })
-    $bTopmost.text = '📌  Topmost: disbaled'
+    $bTopmost.text = '📌  Topmost: Off'
 
 
     $bNewTimer.add_click({
@@ -127,6 +151,8 @@ function Show-Timer {
     $Contextmenue.ShowImageMargin = $false
     $Contextmenue.ShowItemToolTips = $false
     
+
+    #void to supress output from this action
     [void]$Contextmenue.Items.add($lMin)
     [void]$Contextmenue.Items.add($tMin)
     [void]$Contextmenue.Items.add($bTopmost)
@@ -140,7 +166,8 @@ function Show-Timer {
             $script:isMoving = $false
             $tdelay.Start()
             $script:initialPosition = $args[1] | Select-Object x, y
-        }) 
+        })
+        
     $lDisplay.add_MouseMove({
             if ($script:moved) {
                 if ($args.Button -eq [System.Windows.Forms.MouseButtons]::Left) {
@@ -156,8 +183,6 @@ function Show-Timer {
             }
         })
 
-
-
     $lDisplay.add_MouseUp({
             if ($_.Button -eq [System.Windows.Forms.MouseButtons]::Left) {
                 $script:moved = $false
@@ -169,10 +194,23 @@ function Show-Timer {
             $Script:moved = $true
             $tdelay.Stop()
         })
-    $tdelay.Interval = 100 
+    $tdelay.Interval = 120 
     #endregion
 
     #region UI
+
+    $pProgress.dock = 'bottom'
+    $pProgress.Size = '20,5' # x does not matter cuz dock
+
+    $pSec.dock = 'bottom'
+    $pSec.Size = '20,3' # x does not matter cuz dock
+
+    $lState.Font = 'microsoft Yi Baiti,16' 
+    $lState.dock = 'top'
+    $lState.TextAlign = 'MiddleCenter'
+    $lState.Text = $state
+
+
     $script:pomodoroCounter = 0
     $script:pomodoroMaximum = 4
     $lPomodoros.Text = "$script:pomodoroCounter/$pomodoroMaximum"
@@ -206,8 +244,7 @@ function Show-Timer {
         })
     $lDisplay.dock = 'fill'
     $lDisplay.TextAlign = 'middlecenter'
-    #$lDisplay.Font = 'arial,20'
-    $lDisplay.Font = 'microsoft Yi Baiti,20' 
+    $lDisplay.Font = 'microsoft Yi Baiti,16' 
     $lDisplay.ContextMenuStrip = $Contextmenue
     Update-DisplayString #load initial display
     
@@ -218,11 +255,12 @@ function Show-Timer {
             else {
                 $script:state = '↩'
                 $tUIUpdater.Enabled = $false
-                 if(-not $fUI.TopMost){
+                if (-not $fUI.TopMost) {
                     $fUI.TopMost = $true
                     $fUI.TopMost = $false
+
                 }
-                & { $alarm.Play() } # is there a better way it play a sound asynchronous?
+                & { $alarm.Play() }
             }
             Update-DisplayString
         })
@@ -243,10 +281,12 @@ function Show-Timer {
     $fUI.AutoScaleMode = 'Font'
     $fUI.StartPosition = 'CenterScreen'
     
-
+    $fui.Controls.add($lState)
     $fUI.controls.Add($lDisplay)
+    
     $fUI.controls.Add($lPomodoros)
-
+    $fUI.controls.Add($pSec)
+    $fUI.controls.Add($pProgress)
     #endregion
     #region start app
     [void]$fUI.ShowDialog()
@@ -257,6 +297,7 @@ function Show-Timer {
     $tUIUpdater.Dispose()
     $tdelay.Stop()
     $tdelay.Dispose()
+    $alarm.Dispose()
     #endregion
 }
 
