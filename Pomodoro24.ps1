@@ -108,7 +108,7 @@ function Show-Timer {
                 $bTopmost.text = '📌  Topmost: On'
             }
         })
-    $bTopmost.text = '📌  Topmost: Off'
+    $bTopmost.text = '📌  Topmost: On'
 
 
     $bNewTimer.add_click({
@@ -268,7 +268,7 @@ function Show-Timer {
 
     $fui.add_shown({
             $fUI.TopMost = $true
-            $fUI.TopMost = $false
+            #$fUI.TopMost = $false
         })
     $fUI.BackColor = 'whitesmoke'
     $fUI.ShowIcon = $false
