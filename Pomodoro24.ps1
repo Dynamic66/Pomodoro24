@@ -294,7 +294,7 @@ $fUI.controls.Add($lPomodoros)
 $fUI.controls.Add($pProgress)
 #endregion
 #region start app
-[void]$fUI.ShowDialog()
+[System.Windows.Forms.Application]::Run($fUI)
 
 #region cleanup
 # maybe not needed? had problems witht this in onther projects
